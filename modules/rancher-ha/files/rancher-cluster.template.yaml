@@ -1,0 +1,22 @@
+cluster_name: local
+
+nodes:
+%{ for ip in private_instance_addresses ~}
+  - address: ${ip}
+    internal_address: ${ip}
+    user: ubuntu
+    role: [controlplane, worker, etcd]
+%{ endfor ~}
+
+services:
+  etcd:
+    snapshot: true
+    creation: 6h
+    retention: 24h
+
+ingress:
+  provider: nginx
+  options:
+    use-forwarded-headers: "true"
+
+ssh_key_path: ./outputs/id_rsa
