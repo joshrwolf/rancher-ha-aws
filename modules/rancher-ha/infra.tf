@@ -1,7 +1,8 @@
-//resource "aws_security_group" "rancher_elb" {
-//  name = local.name
-//  vpc_id = local.vpc_id
-//}
+module "ssh-key" {
+  source = "../ssh-key"
+  name = "rancher-management"
+  output_folder = "${path.root}/outputs/"
+}
 
 resource "aws_security_group" "rancher" {
   name = "${local.name}-rancher-management-server"
@@ -11,10 +12,11 @@ resource "aws_security_group" "rancher" {
     from_port = 22
     to_port = 22
     protocol = "TCP"
-    cidr_blocks = ["0.0.0.0/0"]
+    security_groups = local.ssh_security_group_ids
   }
 
   ingress {
+    description = "http access"
     from_port = 80
     to_port = 80
     protocol = "TCP"
@@ -22,6 +24,7 @@ resource "aws_security_group" "rancher" {
   }
 
   ingress {
+    description = "https access"
     from_port = 443
     to_port = 443
     protocol = "TCP"
@@ -29,6 +32,7 @@ resource "aws_security_group" "rancher" {
   }
 
   ingress {
+    description = "kube-api access"
     from_port = 6443
     to_port = 6443
     protocol = "TCP"
@@ -36,6 +40,7 @@ resource "aws_security_group" "rancher" {
   }
 
   ingress {
+    description = "traffic between self"
     from_port = 0
     to_port = 0
     protocol = "-1"
@@ -43,6 +48,7 @@ resource "aws_security_group" "rancher" {
   }
 
   egress {
+    description = "egress traffic"
     from_port = 0
     to_port = 0
     protocol = "-1"
@@ -55,7 +61,7 @@ resource "aws_instance" "rancher-master" {
   count = local.master_node_count
   ami = local.ami_id
   instance_type = local.instance_type
-  key_name = aws_key_pair.ssh.id
+  key_name = module.ssh-key.aws_key_id
 
   user_data = templatefile("${path.module}/files/cloud-config.template.yaml", {})
 

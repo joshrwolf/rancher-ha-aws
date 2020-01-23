@@ -19,4 +19,4 @@ ingress:
   options:
     use-forwarded-headers: "true"
 
-ssh_key_path: ./outputs/id_rsa
+ssh_key_path: /etc/rancher/id_rsa
